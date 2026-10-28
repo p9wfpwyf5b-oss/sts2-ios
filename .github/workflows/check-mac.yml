@@ -1,31 +1,44 @@
 
-name: Check macOS Build Environment
+name: Setup STS2 Build Environment
 
 on:
   workflow_dispatch:
 
 jobs:
-  check:
+  setup:
     runs-on: macos-26
 
     steps:
-      - name: Check Xcode
-        run: |
-          sw_vers
-          xcodebuild -version
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      - name: Check .NET SDK
-        run: |
-          dotnet --list-sdks
+      - name: Select .NET 9
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
 
-      - name: Check Godot
+      - name: Install Godot 4.5.1 Mono
         run: |
-          if command -v godot >/dev/null 2>&1; then
-            godot --version
-          else
-            echo "Godot not installed"
+          curl -fL --retry 3 \
+            -o godot.zip \
+            https://github.com/godotengine/godot/releases/download/4.5.1-stable/Godot_v4.5.1-stable_mono_macos.universal.zip
+
+          unzip -q godot.zip -d godot-install
+
+          GODOT_APP=$(find "$PWD/godot-install" -name "Godot*.app" -type d -print -quit)
+
+          if [ -z "$GODOT_APP" ]; then
+            echo "Godot app not found"
+            exit 1
           fi
 
-      - name: Check available space
+          echo "GODOT_APP=$GODOT_APP" >> "$GITHUB_ENV"
+
+          "$GODOT_APP/Contents/MacOS/Godot" --headless --version
+
+      - name: Check build tools
         run: |
-          df -h /
+          dotnet --version
+          xcodebuild -version
+          echo "Environment setup completed"
+
