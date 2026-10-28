@@ -1,44 +1,28 @@
 
-name: Setup STS2 Build Environment
+name: Build STS2 Weaver
 
 on:
   workflow_dispatch:
 
 jobs:
-  setup:
+  build:
     runs-on: macos-26
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Select .NET 9
+      - name: Setup .NET 9
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '9.0.x'
 
-      - name: Install Godot 4.5.1 Mono
+      - name: Build STS2Weaver
         run: |
-          curl -fL --retry 3 \
-            -o godot.zip \
-            https://github.com/godotengine/godot/releases/download/4.5.1-stable/Godot_v4.5.1-stable_mono_macos.universal.zip
+          dotnet build src/STS2Weaver/STS2Weaver.csproj \
+            -c Release
 
-          unzip -q godot.zip -d godot-install
-
-          GODOT_APP=$(find "$PWD/godot-install" -name "Godot*.app" -type d -print -quit)
-
-          if [ -z "$GODOT_APP" ]; then
-            echo "Godot app not found"
-            exit 1
-          fi
-
-          echo "GODOT_APP=$GODOT_APP" >> "$GITHUB_ENV"
-
-          "$GODOT_APP/Contents/MacOS/Godot" --headless --version
-
-      - name: Check build tools
+      - name: Verify output
         run: |
-          dotnet --version
-          xcodebuild -version
-          echo "Environment setup completed"
-
+          test -f src/STS2Weaver/bin/Release/net9.0/STS2Weaver.dll
+          echo "STS2Weaver build successful!"
