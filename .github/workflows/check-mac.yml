@@ -1,0 +1,15 @@
+
+name: Check macOS Build Environment
+
+on:
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: macos-15
+    steps:
+      - name: Check macOS and Xcode
+        run: |
+          sw_vers
+          xcodebuild -version
+          xcrun --sdk iphoneos --show-sdk-version
