@@ -7,9 +7,25 @@ on:
 jobs:
   check:
     runs-on: macos-26
+
     steps:
-      - name: Check macOS and Xcode
+      - name: Check Xcode
         run: |
           sw_vers
           xcodebuild -version
-          xcrun --sdk iphoneos --show-sdk-version
+
+      - name: Check .NET SDK
+        run: |
+          dotnet --list-sdks
+
+      - name: Check Godot
+        run: |
+          if command -v godot >/dev/null 2>&1; then
+            godot --version
+          else
+            echo "Godot not installed"
+          fi
+
+      - name: Check available space
+        run: |
+          df -h /
